@@ -1,0 +1,77 @@
+# Model Configuration for Multi-Modal AI System
+
+# Vision Models
+vision:
+  clip:
+    model_name: "ViT-B/32"
+    device: "cuda"  # or "cpu"
+    
+  blip:
+    model_type: "blip-base"  # or "blip-large"
+    device: "cuda"
+    
+  blip2:
+    model_type: "blip2-opt-2.7b"
+    device: "cuda"
+    torch_dtype: "float16"  # or "float32"
+    
+  grounding_dino:
+    config_path: "GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py"
+    checkpoint_path: "weights/groundingdino_swint_ogc.pth"
+    box_threshold: 0.35
+    text_threshold: 0.25
+
+# Audio Models
+audio:
+  whisper:
+    model_size: "base"  # tiny, base, small, medium, large
+    device: "cuda"
+    temperature: 0.0  # Deterministic output
+    
+  tts:
+    engine: "gtts"  # Google Text-to-Speech
+    language: "en"
+
+# LLM Configuration
+llm:
+  claude:
+    model: "claude-3-5-sonnet-20241022"
+    max_tokens: 4096
+    temperature: 0.7
+    
+  gpt4:
+    model: "gpt-4-vision-preview"
+    max_tokens: 4096
+    temperature: 0.7
+    
+  gemini:
+    model: "gemini-pro-vision"
+    temperature: 0.7
+
+# Preprocessing Settings
+preprocessing:
+  image:
+    max_size: [1024, 1024]
+    quality: 85
+    format: "PNG"
+    
+  audio:
+    target_sample_rate: 16000
+    normalize: true
+    
+  text:
+    max_length: 4096
+    clean_whitespace: true
+
+# Cache Configuration
+cache:
+  enabled: true
+  directory: "./cache"
+  ttl_seconds: 3600
+  max_size_mb: 1000
+
+# Performance
+performance:
+  batch_size: 5
+  max_workers: 3
+  timeout_seconds: 30

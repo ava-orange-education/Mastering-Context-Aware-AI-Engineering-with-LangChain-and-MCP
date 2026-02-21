@@ -1,0 +1,88 @@
+# Personal Assistant Configuration
+
+# General Settings
+assistant:
+  name: "MultiModal Personal Assistant"
+  version: "1.0.0"
+  enable_cache: true
+  enable_monitoring: true
+
+# Capabilities
+capabilities:
+  receipt_analysis:
+    enabled: true
+    extract_fields:
+      - store_name
+      - date
+      - items
+      - total
+      - tax
+      - payment_method
+      
+  meeting_transcription:
+    enabled: true
+    generate_summary: true
+    extract_action_items: true
+    
+  document_verification:
+    enabled: true
+    authenticity_check: true
+    comparison_mode: true
+    
+  cross_modal_reasoning:
+    enabled: true
+    max_modalities: 3
+
+# Input Validation
+validation:
+  image:
+    max_size_mb: 20
+    max_dimension: 4096
+    supported_formats:
+      - jpg
+      - jpeg
+      - png
+      - gif
+      - webp
+      
+  audio:
+    max_size_mb: 20
+    max_duration_seconds: 3600
+    supported_formats:
+      - mp3
+      - wav
+      - m4a
+      - flac
+      - ogg
+      
+  document:
+    max_size_mb: 20
+    supported_formats:
+      - pdf
+      - docx
+      - txt
+      - md
+
+# Cost Management
+cost:
+  tracking_enabled: true
+  budget_limit_usd: null  # null for unlimited
+  alert_threshold_percent: 80
+  
+# Performance Monitoring
+monitoring:
+  enabled: true
+  metrics_collection: true
+  health_check_interval_seconds: 300
+  performance_report_interval_seconds: 3600
+  
+# Error Handling
+error_handling:
+  max_retries: 3
+  retry_delay_seconds: 1
+  exponential_backoff: true
+  max_backoff_seconds: 60
+  
+  fallback_strategies:
+    enabled: true
+    graceful_degradation: true

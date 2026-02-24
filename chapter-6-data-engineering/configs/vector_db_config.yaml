@@ -1,0 +1,218 @@
+# Vector Database Configuration
+
+# Default Settings
+default:
+  backend: "chromadb"
+  collection_name: "documents"
+  batch_size: 100
+
+# ChromaDB Configuration
+chromadb:
+  # Persistence
+  persist_directory: "./data/chroma"
+  
+  # Collection settings
+  collections:
+    - name: "documents"
+      description: "Main document collection"
+      metadata:
+        dimensions: 1536
+        embedding_function: "openai"
+    
+    - name: "chunks"
+      description: "Document chunks"
+      metadata:
+        dimensions: 1536
+        embedding_function: "openai"
+  
+  # Client settings
+  settings:
+    anonymized_telemetry: false
+    allow_reset: true
+    
+  # Performance
+  batch_size: 100
+  max_batch_bytes: 41943040  # 40MB
+
+# Pinecone Configuration
+pinecone:
+  api_key: "${PINECONE_API_KEY}"
+  environment: "${PINECONE_ENVIRONMENT}"  # e.g., "us-east-1-aws"
+  
+  # Index settings
+  indexes:
+    - name: "documents"
+      dimensions: 1536
+      metric: "cosine"  # cosine, euclidean, dotproduct
+      
+      spec:
+        serverless:
+          cloud: "aws"
+          region: "us-east-1"
+        
+        # Or for pod-based:
+        # pod:
+        #   environment: "us-east-1-aws"
+        #   pod_type: "p1.x1"
+        #   pods: 1
+        #   replicas: 1
+  
+  # Performance
+  batch_size: 100
+  max_workers: 4
+  
+  # Metadata indexing
+  metadata_config:
+    indexed_fields:
+      - "source"
+      - "category"
+      - "timestamp"
+
+# Weaviate Configuration
+weaviate:
+  url: "${WEAVIATE_URL}"  # e.g., "http://localhost:8080"
+  
+  # Authentication (if needed)
+  auth:
+    enabled: false
+    api_key: "${WEAVIATE_API_KEY}"
+  
+  # Class schemas
+  classes:
+    - class_name: "Documents"
+      description: "Document collection"
+      vectorizer: "none"  # Using custom embeddings
+      
+      properties:
+        - name: "text"
+          data_type: ["text"]
+          description: "Document text content"
+        
+        - name: "source"
+          data_type: ["string"]
+          description: "Source identifier"
+        
+        - name: "category"
+          data_type: ["string"]
+          description: "Document category"
+        
+        - name: "timestamp"
+          data_type: ["date"]
+          description: "Document timestamp"
+        
+        - name: "metadata"
+          data_type: ["text"]
+          description: "JSON metadata"
+  
+  # Performance
+  batch_size: 100
+  batch_type: "dynamic"  # or "fixed"
+
+# Qdrant Configuration
+qdrant:
+  url: "${QDRANT_URL}"  # e.g., "http://localhost:6333"
+  
+  # Collections
+  collections:
+    - name: "documents"
+      vector_size: 1536
+      distance: "Cosine"  # Cosine, Euclid, Dot
+      
+      # Indexing
+      hnsw_config:
+        m: 16
+        ef_construct: 100
+        full_scan_threshold: 10000
+      
+      # Quantization
+      quantization:
+        enabled: false
+        type: "scalar"  # scalar, binary
+  
+  # Performance
+  batch_size: 100
+  parallel: 4
+
+# Search Configuration
+search:
+  # Default search parameters
+  default_top_k: 10
+  max_top_k: 100
+  
+  # Similarity thresholds
+  thresholds:
+    minimum_score: 0.5
+    high_relevance: 0.8
+  
+  # Metadata filtering
+  filters:
+    enabled: true
+    operators: ["eq", "ne", "gt", "gte", "lt", "lte", "in", "nin"]
+  
+  # Result reranking
+  reranking:
+    enabled: false
+    model: "cross-encoder/ms-marco-MiniLM-L-12-v2"
+    top_k_for_reranking: 50
+
+# Hybrid Search Configuration
+hybrid_search:
+  enabled: true
+  
+  # Fusion method
+  fusion_method: "rrf"  # reciprocal_rank_fusion or "weighted_sum"
+  
+  # Weights for different retrieval methods
+  weights:
+    vector: 0.7
+    bm25: 0.3
+  
+  # BM25 parameters
+  bm25:
+    k1: 1.5
+    b: 0.75
+
+# Backup and Maintenance
+maintenance:
+  # Automatic backups
+  backup:
+    enabled: true
+    schedule: "@daily"
+    directory: "./backups/vectors"
+    retention_days: 7
+  
+  # Cleanup
+  cleanup:
+    enabled: true
+    remove_orphaned_vectors: true
+    compact_on_schedule: false
+
+# Monitoring
+monitoring:
+  enabled: true
+  
+  metrics:
+    - collection_size
+    - query_latency
+    - index_size
+    - memory_usage
+  
+  alerts:
+    collection_size_mb: 10000
+    query_latency_ms: 1000
+
+# Cost Optimization
+cost_optimization:
+  # Dimensionality reduction
+  reduce_dimensions: false
+  target_dimensions: 768
+  
+  # Vector compression
+  compression:
+    enabled: false
+    method: "product_quantization"
+    
+  # Index optimization
+  optimize_index:
+    enabled: true
+    schedule: "@weekly"

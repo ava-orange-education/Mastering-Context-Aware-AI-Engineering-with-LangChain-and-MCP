@@ -1,0 +1,278 @@
+# Monitoring and Quality Configuration
+
+# Data Quality Rules
+quality_rules:
+  # Completeness checks
+  - rule_id: "completeness_check"
+    type: "completeness"
+    enabled: true
+    required_fields:
+      - "content"
+      - "metadata"
+      - "record_id"
+    threshold: 0.95  # 95% of fields must be present
+    severity: "warning"
+  
+  # Uniqueness checks
+  - rule_id: "uniqueness_check"
+    type: "uniqueness"
+    enabled: true
+    key_fields:
+      - "record_id"
+    severity: "error"
+  
+  # Consistency checks
+  - rule_id: "content_consistency"
+    type: "consistency"
+    enabled: true
+    field: "content"
+    data_type: "string"
+    pattern: null  # Optional regex pattern
+    severity: "warning"
+  
+  # Accuracy checks
+  - rule_id: "category_accuracy"
+    type: "accuracy"
+    enabled: true
+    field: "category"
+    valid_values:
+      - "technology"
+      - "business"
+      - "science"
+      - "health"
+      - "other"
+    severity: "warning"
+  
+  # Timeliness checks
+  - rule_id: "data_freshness"
+    type: "timeliness"
+    enabled: true
+    timestamp_field: "timestamp"
+    max_age_hours: 24
+    severity: "warning"
+
+# Pipeline Monitoring
+pipeline_monitoring:
+  enabled: true
+  
+  # Metrics collection
+  metrics:
+    # Execution metrics
+    track_executions: true
+    track_latency: true
+    track_throughput: true
+    track_error_rates: true
+    
+    # Resource metrics
+    track_memory_usage: true
+    track_cpu_usage: true
+    track_disk_usage: true
+    
+    # Data metrics
+    track_record_counts: true
+    track_data_volume: true
+  
+  # Time windows for aggregation
+  time_windows:
+    - name: "last_hour"
+      hours: 1
+    - name: "last_day"
+      hours: 24
+    - name: "last_week"
+      hours: 168
+  
+  # Health checks
+  health_checks:
+    interval_seconds: 300  # Check every 5 minutes
+    
+    thresholds:
+      success_rate:
+        healthy: 0.99
+        degraded: 0.95
+        unhealthy: 0.90
+      
+      error_rate:
+        healthy: 0.01
+        degraded: 0.05
+        unhealthy: 0.10
+      
+      latency_seconds:
+        healthy: 300  # 5 minutes
+        degraded: 1800  # 30 minutes
+        unhealthy: 3600  # 1 hour
+
+# Alerting
+alerting:
+  enabled: true
+  
+  # Alert rules
+  rules:
+    - alert_id: "high_error_rate"
+      condition:
+        metric: "error_rate"
+        operator: "greater_than"
+        threshold: 0.05
+        duration_minutes: 5
+      severity: "warning"
+      message: "Error rate exceeded 5% for 5 minutes"
+    
+    - alert_id: "low_success_rate"
+      condition:
+        metric: "success_rate"
+        operator: "less_than"
+        threshold: 0.95
+        duration_minutes: 5
+      severity: "error"
+      message: "Success rate below 95% for 5 minutes"
+    
+    - alert_id: "high_latency"
+      condition:
+        metric: "latency_seconds"
+        operator: "greater_than"
+        threshold: 3600
+        duration_minutes: 1
+      severity: "warning"
+      message: "Pipeline latency exceeded 1 hour"
+    
+    - alert_id: "pipeline_failure"
+      condition:
+        metric: "execution_status"
+        operator: "equals"
+        value: "failed"
+      severity: "critical"
+      message: "Pipeline execution failed"
+  
+  # Alert channels
+  channels:
+    # Log alerts
+    - type: "log"
+      enabled: true
+      level: "WARNING"
+      format: "[{severity}] {alert_id}: {message}"
+    
+    # Email alerts
+    - type: "email"
+      enabled: false
+      smtp:
+        host: "${SMTP_HOST}"
+        port: 587
+        username: "${SMTP_USERNAME}"
+        password: "${SMTP_PASSWORD}"
+        use_tls: true
+      from_email: "alerts@example.com"
+      to_emails:
+        - "admin@example.com"
+        - "ops@example.com"
+      subject_prefix: "[DATA PIPELINE ALERT]"
+    
+    # Slack alerts
+    - type: "slack"
+      enabled: false
+      webhook_url: "${SLACK_WEBHOOK_URL}"
+      channel: "#data-alerts"
+      username: "Pipeline Monitor"
+    
+    # PagerDuty alerts
+    - type: "pagerduty"
+      enabled: false
+      api_key: "${PAGERDUTY_API_KEY}"
+      service_id: "${PAGERDUTY_SERVICE_ID}"
+  
+  # Alert throttling
+  throttling:
+    enabled: true
+    # Don't send same alert more than once per time window
+    time_window_minutes: 60
+    max_alerts_per_window: 5
+
+# Reporting
+reporting:
+  enabled: true
+  
+  # Report schedule
+  schedules:
+    - name: "daily_report"
+      frequency: "@daily"
+      time: "09:00"
+      timezone: "UTC"
+      recipients:
+        - "data-team@example.com"
+    
+    - name: "weekly_report"
+      frequency: "@weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+      recipients:
+        - "management@example.com"
+  
+  # Report content
+  content:
+    include_summary: true
+    include_metrics: true
+    include_quality_report: true
+    include_alerts: true
+    include_recommendations: true
+  
+  # Report format
+  format: "html"  # html, pdf, or markdown
+  
+  # Report storage
+  storage:
+    save_to_disk: true
+    directory: "./reports"
+    retention_days: 90
+
+# Logging
+logging:
+  # Log levels by component
+  levels:
+    root: "INFO"
+    ingestion: "INFO"
+    preprocessing: "INFO"
+    embedding: "INFO"
+    vector_storage: "DEBUG"
+    knowledge_graph: "INFO"
+    pipeline: "INFO"
+    monitoring: "INFO"
+  
+  # Log format
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  date_format: "%Y-%m-%d %H:%M:%S"
+  
+  # File handlers
+  files:
+    - name: "main"
+      filename: "./logs/pipeline.log"
+      max_bytes: 10485760  # 10MB
+      backup_count: 5
+      level: "INFO"
+    
+    - name: "errors"
+      filename: "./logs/errors.log"
+      max_bytes: 10485760
+      backup_count: 5
+      level: "ERROR"
+  
+  # Console handler
+  console:
+    enabled: true
+    level: "INFO"
+    colored: true
+
+# Dashboards
+dashboards:
+  enabled: false
+  
+  # Grafana integration
+  grafana:
+    url: "${GRAFANA_URL}"
+    api_key: "${GRAFANA_API_KEY}"
+    dashboard_id: "pipeline-monitoring"
+  
+  # Metrics export
+  metrics_export:
+    enabled: true
+    format: "prometheus"  # prometheus or influxdb
+    port: 9090
+    path: "/metrics"

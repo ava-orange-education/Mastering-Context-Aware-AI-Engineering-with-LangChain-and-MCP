@@ -1,0 +1,219 @@
+# Pipeline Configuration
+
+pipeline:
+  id: "data_engineering_pipeline"
+  description: "Main data ingestion and processing pipeline"
+  schedule: "@daily"  # Cron expression or Airflow preset
+  max_retries: 3
+  retry_delay_minutes: 5
+  timeout_minutes: 120
+
+# Data Sources
+ingestion:
+  sources:
+    # PostgreSQL Database
+    - source_id: "postgres_production"
+      type: "database"
+      enabled: true
+      connection_params:
+        host: "${POSTGRES_HOST}"
+        port: 5432
+        database: "${POSTGRES_DB}"
+        user: "${POSTGRES_USER}"
+        password: "${POSTGRES_PASSWORD}"
+        table: "documents"
+        timestamp_column: "updated_at"
+        id_column: "id"
+      
+    # REST API
+    - source_id: "external_api"
+      type: "api"
+      enabled: true
+      connection_params:
+        base_url: "https://api.example.com"
+        endpoint: "/documents"
+        auth_type: "bearer"
+        auth_token: "${API_TOKEN}"
+        pagination: "offset"
+        page_size: 100
+        rate_limit: 10  # requests per second
+      
+    # S3 Bucket
+    - source_id: "s3_documents"
+      type: "s3"
+      enabled: true
+      connection_params:
+        bucket: "${S3_BUCKET}"
+        prefix: "documents/"
+        aws_access_key_id: "${AWS_ACCESS_KEY_ID}"
+        aws_secret_access_key: "${AWS_SECRET_ACCESS_KEY}"
+        region: "us-east-1"
+      
+    # Local Files
+    - source_id: "local_files"
+      type: "file"
+      enabled: false
+      connection_params:
+        root_path: "./data/raw"
+        patterns: ["*.txt", "*.pdf", "*.docx"]
+        recursive: true
+        file_types: [".txt", ".pdf", ".docx", ".md"]
+
+# Preprocessing Configuration
+preprocessing:
+  text_cleaning:
+    enabled: true
+    lowercase: false
+    remove_urls: true
+    remove_emails: true
+    remove_phone_numbers: true
+    remove_numbers: false
+    remove_punctuation: false
+    remove_extra_whitespace: true
+    normalize_unicode: true
+  
+  document_normalization:
+    enabled: true
+    # Normalize different document formats to consistent structure
+  
+  chunking:
+    strategy: "sentence"  # Options: fixed, sentence, semantic, hierarchical
+    chunk_size: 512
+    chunk_overlap: 50
+    # For semantic chunking
+    similarity_threshold: 0.7
+    # For hierarchical chunking
+    parent_size: 2048
+    child_size: 512
+
+# Embedding Configuration
+embedding:
+  provider: "openai"  # Options: openai, sentence-transformers, cohere, anthropic
+  model_name: "text-embedding-3-small"
+  
+  batch_processing:
+    enabled: true
+    batch_size: 100
+    max_workers: 4
+  
+  caching:
+    enabled: true
+    cache_size: 10000
+    cache_dir: "./cache/embeddings"
+
+# Vector Storage
+vector_storage:
+  backend: "chromadb"  # Options: chromadb, pinecone, weaviate
+  
+  chromadb:
+    persist_directory: "./data/chroma"
+    collection_name: "documents"
+  
+  pinecone:
+    environment: "${PINECONE_ENVIRONMENT}"
+    api_key: "${PINECONE_API_KEY}"
+    index_name: "documents"
+  
+  weaviate:
+    url: "http://localhost:8080"
+    class_name: "Documents"
+
+# Knowledge Graph
+knowledge_graph:
+  enabled: true
+  
+  entity_extraction:
+    method: "spacy"  # Options: spacy, llm, pattern
+    model_name: "en_core_web_sm"
+  
+  relation_extraction:
+    method: "llm"  # Options: llm, dependency, pattern
+  
+  graph_storage:
+    backend: "memory"  # Options: memory, neo4j
+    
+    neo4j:
+      uri: "${NEO4J_URI}"
+      username: "${NEO4J_USER}"
+      password: "${NEO4J_PASSWORD}"
+
+# Hybrid Retrieval
+hybrid_retrieval:
+  enabled: true
+  
+  fusion_weights:
+    vector: 0.5
+    bm25: 0.3
+    graph: 0.2
+  
+  bm25:
+    k1: 1.5
+    b: 0.75
+
+# Data Quality Rules
+quality_monitoring:
+  enabled: true
+  
+  rules:
+    - type: "completeness"
+      required_fields: ["content", "metadata"]
+      threshold: 0.95
+      severity: "warning"
+    
+    - type: "uniqueness"
+      key_fields: ["record_id"]
+      severity: "error"
+    
+    - type: "consistency"
+      field: "content"
+      data_type: "str"
+      severity: "warning"
+    
+    - type: "timeliness"
+      timestamp_field: "timestamp"
+      max_age_hours: 24
+      severity: "warning"
+
+# Pipeline Monitoring
+monitoring:
+  enabled: true
+  
+  metrics:
+    collect_latency: true
+    collect_throughput: true
+    collect_error_rates: true
+  
+  alerts:
+    enabled: true
+    
+    thresholds:
+      error_rate: 0.05  # 5%
+      success_rate: 0.95  # 95%
+      max_latency: 3600  # 1 hour in seconds
+    
+    channels:
+      - type: "log"
+        level: "WARNING"
+      
+      - type: "email"
+        enabled: false
+        smtp_host: "${SMTP_HOST}"
+        smtp_port: 587
+        from_email: "alerts@example.com"
+        to_emails:
+          - "admin@example.com"
+
+# Checkpointing
+checkpointing:
+  enabled: true
+  checkpoint_file: "./data/checkpoints/pipeline_checkpoints.json"
+  # Save checkpoint after each source completes
+
+# Logging
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "./logs/pipeline.log"
+  max_bytes: 10485760  # 10MB
+  backup_count: 5
+  console_output: true

@@ -1,0 +1,167 @@
+# Embedding Configuration
+
+# Provider Settings
+providers:
+  openai:
+    enabled: true
+    api_key: "${OPENAI_API_KEY}"
+    
+    models:
+      - name: "text-embedding-3-small"
+        dimensions: 1536
+        max_input_tokens: 8191
+        cost_per_1k_tokens: 0.00002
+        recommended_use: "General purpose, cost-effective"
+      
+      - name: "text-embedding-3-large"
+        dimensions: 3072
+        max_input_tokens: 8191
+        cost_per_1k_tokens: 0.00013
+        recommended_use: "Higher quality, more expensive"
+      
+      - name: "text-embedding-ada-002"
+        dimensions: 1536
+        max_input_tokens: 8191
+        cost_per_1k_tokens: 0.0001
+        recommended_use: "Legacy model, still good quality"
+  
+  sentence_transformers:
+    enabled: true
+    # No API key needed - runs locally
+    
+    models:
+      - name: "all-MiniLM-L6-v2"
+        dimensions: 384
+        max_input_tokens: 256
+        device: "cpu"  # or "cuda"
+        recommended_use: "Fast, lightweight, good for large scale"
+      
+      - name: "all-mpnet-base-v2"
+        dimensions: 768
+        max_input_tokens: 384
+        device: "cpu"
+        recommended_use: "Better quality than MiniLM"
+      
+      - name: "multi-qa-mpnet-base-dot-v1"
+        dimensions: 768
+        max_input_tokens: 512
+        device: "cpu"
+        recommended_use: "Optimized for question-answering"
+  
+  cohere:
+    enabled: false
+    api_key: "${COHERE_API_KEY}"
+    
+    models:
+      - name: "embed-english-v3.0"
+        dimensions: 1024
+        input_type: "search_document"  # or "search_query"
+        cost_per_1k_tokens: 0.0001
+      
+      - name: "embed-multilingual-v3.0"
+        dimensions: 1024
+        input_type: "search_document"
+        cost_per_1k_tokens: 0.0001
+  
+  voyage:
+    enabled: false
+    api_key: "${VOYAGE_API_KEY}"
+    
+    models:
+      - name: "voyage-2"
+        dimensions: 1024
+        cost_per_1k_tokens: 0.00012
+
+# Default Provider and Model
+default:
+  provider: "openai"
+  model: "text-embedding-3-small"
+
+# Batch Processing
+batch_processing:
+  enabled: true
+  default_batch_size: 100
+  max_workers: 4
+  parallel_processing: true
+  
+  # Provider-specific batch sizes
+  batch_sizes:
+    openai: 100
+    sentence_transformers: 32
+    cohere: 96
+    voyage: 128
+
+# Caching Strategy
+caching:
+  enabled: true
+  
+  # In-memory cache
+  memory_cache:
+    max_size: 10000
+    eviction_policy: "lru"  # Least Recently Used
+  
+  # Disk cache
+  disk_cache:
+    enabled: true
+    directory: "./cache/embeddings"
+    max_size_gb: 10
+    ttl_days: 30
+  
+  # Cache key generation
+  cache_key:
+    include_model_name: true
+    include_provider: true
+    hash_algorithm: "md5"
+
+# Optimization
+optimization:
+  # Dimensionality reduction
+  reduce_dimensions:
+    enabled: false
+    target_dimensions: 768
+    method: "pca"  # or "umap"
+  
+  # Quantization
+  quantization:
+    enabled: false
+    bits: 8  # 8-bit or 4-bit
+  
+  # Normalize embeddings
+  normalize: true  # L2 normalization for cosine similarity
+
+# Monitoring
+monitoring:
+  track_costs: true
+  track_latency: true
+  track_cache_hits: true
+  
+  log_every_n_batches: 10
+  
+  cost_alerts:
+    enabled: true
+    daily_budget_usd: 10.0
+    alert_threshold_percent: 80
+
+# Error Handling
+error_handling:
+  max_retries: 3
+  retry_delay_seconds: 1
+  exponential_backoff: true
+  max_backoff_seconds: 60
+  
+  # Fallback strategy
+  fallback:
+    enabled: true
+    fallback_provider: "sentence_transformers"
+    fallback_model: "all-MiniLM-L6-v2"
+
+# Quality Checks
+quality:
+  validate_dimensions: true
+  check_for_nans: true
+  check_for_zeros: true
+  
+  # Embedding quality thresholds
+  thresholds:
+    min_norm: 0.01
+    max_norm: 100.0

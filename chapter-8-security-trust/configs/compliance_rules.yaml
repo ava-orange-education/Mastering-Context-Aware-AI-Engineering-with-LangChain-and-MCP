@@ -1,0 +1,92 @@
+# Compliance Rules Configuration
+
+regulations:
+  gdpr:
+    name: "General Data Protection Regulation"
+    enabled: true
+    requirements:
+      - audit_logs
+      - pii_protection
+      - data_retention
+      - consent_management
+      - right_to_deletion
+    data_retention_days: 365
+    pii_anonymization_required: true
+    consent_required: true
+    
+  hipaa:
+    name: "Health Insurance Portability and Accountability Act"
+    enabled: false
+    requirements:
+      - audit_logs
+      - encryption
+      - access_control
+      - data_retention
+    data_retention_days: 2555  # 7 years
+    encryption_required: true
+    access_logs_required: true
+    
+  pci_dss:
+    name: "Payment Card Industry Data Security Standard"
+    enabled: false
+    requirements:
+      - encryption
+      - access_control
+      - logging
+      - network_security
+    log_retention_days: 90
+    cardholder_data_protection: true
+
+audit_requirements:
+  log_all_access: true
+  log_retention_days: 365
+  include_metadata: true
+  tamper_proof: true
+  
+  logged_events:
+    - authentication
+    - authorization
+    - data_access
+    - pii_access
+    - configuration_changes
+    - security_incidents
+
+pii_handling:
+  automatic_detection: true
+  anonymization_default: "mask"
+  log_all_access: true
+  require_justification: false
+  
+  high_risk_pii:
+    - ssn
+    - credit_card
+    - passport_number
+    - medical_record_number
+  
+  handling_by_type:
+    ssn:
+      anonymization: "redact"
+      access_requires: "export_data"
+      logging: "mandatory"
+    credit_card:
+      anonymization: "mask"
+      access_requires: "export_data"
+      logging: "mandatory"
+    email:
+      anonymization: "mask"
+      access_requires: "read_document"
+      logging: "optional"
+
+data_retention:
+  default_retention_days: 365
+  
+  by_data_type:
+    audit_logs: 730  # 2 years
+    pii_data: 365    # 1 year
+    analytics: 90     # 3 months
+    session_data: 30  # 1 month
+  
+  deletion_policy:
+    automatic: true
+    soft_delete: true
+    retention_period_days: 30

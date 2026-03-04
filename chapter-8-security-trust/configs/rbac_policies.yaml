@@ -1,0 +1,105 @@
+# RBAC Policies Configuration
+
+roles:
+  admin:
+    description: "System administrator with full access"
+    permissions:
+      - read_document
+      - write_document
+      - delete_document
+      - execute_query
+      - export_data
+      - manage_users
+      - manage_roles
+      - view_audit_logs
+      - use_agent
+      - configure_agent
+      - system_admin
+
+  analyst:
+    description: "Data analyst with read and export access"
+    permissions:
+      - read_document
+      - execute_query
+      - export_data
+      - use_agent
+    inherits_from: []
+
+  editor:
+    description: "Content editor with read/write access"
+    permissions:
+      - read_document
+      - write_document
+      - execute_query
+      - use_agent
+      - configure_agent
+    inherits_from: []
+
+  user:
+    description: "Standard user with basic access"
+    permissions:
+      - read_document
+      - execute_query
+      - use_agent
+    inherits_from: []
+
+resource_types:
+  document:
+    default_permissions:
+      - read_document
+    sensitivity_levels:
+      public:
+        required_permissions:
+          - read_document
+      internal:
+        required_permissions:
+          - read_document
+          - export_data
+      confidential:
+        required_permissions:
+          - read_document
+          - export_data
+          - manage_users
+      restricted:
+        required_permissions:
+          - system_admin
+
+permission_definitions:
+  read_document:
+    description: "View document content"
+    category: "data_access"
+  
+  write_document:
+    description: "Create or modify documents"
+    category: "data_modification"
+  
+  delete_document:
+    description: "Delete documents"
+    category: "data_modification"
+    requires_approval: true
+  
+  execute_query:
+    description: "Execute search queries"
+    category: "data_access"
+  
+  export_data:
+    description: "Export data and view PII"
+    category: "data_access"
+    audit_required: true
+  
+  manage_users:
+    description: "Manage user accounts"
+    category: "administration"
+  
+  manage_roles:
+    description: "Manage roles and permissions"
+    category: "administration"
+  
+  view_audit_logs:
+    description: "View security audit logs"
+    category: "security"
+  
+  system_admin:
+    description: "Full system administration"
+    category: "administration"
+    requires_mfa: true

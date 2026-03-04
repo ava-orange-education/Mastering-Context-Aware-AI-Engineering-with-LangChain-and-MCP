@@ -1,0 +1,58 @@
+# Security Configuration
+
+authentication:
+  session_timeout_minutes: 30
+  max_failed_attempts: 5
+  lockout_duration_minutes: 15
+  password_requirements:
+    min_length: 8
+    require_uppercase: true
+    require_lowercase: true
+    require_numbers: true
+    require_special_chars: false
+
+authorization:
+  default_roles:
+    - user
+    - analyst
+    - editor
+    - admin
+  permission_cache_ttl_seconds: 300
+
+encryption:
+  algorithm: "fernet"
+  key_rotation_days: 90
+  encrypt_at_rest: true
+  encrypt_in_transit: true
+
+pii_protection:
+  detection_enabled: true
+  auto_anonymize: false
+  default_strategy: "mask"
+  log_pii_access: true
+  high_risk_pii:
+    - ssn
+    - credit_card
+    - date_of_birth
+
+hallucination_detection:
+  pattern_based: true
+  grounding_check: true
+  llm_verification: false  # Optional, increases cost
+  confidence_threshold: 0.8
+  block_high_confidence: true
+
+monitoring:
+  security_events_retention_days: 90
+  alert_thresholds:
+    failed_auth_rate: 5
+    query_rate: 100
+    pii_access_rate: 20
+    error_rate: 10
+
+compliance:
+  regulations:
+    - gdpr
+    - hipaa
+  audit_log_retention_days: 365
+  require_data_lineage: true

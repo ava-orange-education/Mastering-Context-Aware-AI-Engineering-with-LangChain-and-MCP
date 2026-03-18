@@ -1,0 +1,64 @@
+# Metrics Configuration
+
+metrics:
+  enabled: true
+  
+  # Groundedness settings
+  groundedness:
+    enabled: true
+    method: "keyword_overlap"  # keyword_overlap, llm_verification
+    overlap_threshold: 0.6
+    use_llm_verification: false  # Set to true for higher accuracy (slower, more expensive)
+  
+  # Coherence settings
+  coherence:
+    enabled: true
+    check_structure: true
+    check_repetition: true
+    check_transitions: true
+    min_sentence_length: 3
+    max_sentence_length: 50
+  
+  # Factuality settings
+  factuality:
+    enabled: true
+    method: "source_verification"  # source_verification, ground_truth_comparison, hallucination_detection
+    verification_threshold: 0.7
+  
+  # Relevance settings
+  relevance:
+    enabled: true
+    keyword_weight: 0.5
+    intent_weight: 0.5
+    min_overlap_ratio: 0.3
+
+# Evaluation settings
+evaluation:
+  default_metrics:
+    - relevance
+    - coherence
+    - groundedness
+    - factuality
+  
+  aggregation_method: "average"  # average, weighted
+  
+  weights:  # Used if aggregation_method is "weighted"
+    relevance: 0.3
+    coherence: 0.2
+    groundedness: 0.3
+    factuality: 0.2
+  
+  pass_threshold: 0.7  # Minimum score to consider evaluation passed
+
+# Reporting settings
+reporting:
+  formats:
+    - text
+    - json
+    - html
+    - markdown
+  
+  default_format: "html"
+  
+  include_charts: true
+  max_individual_results: 20  # Max results to show in reports

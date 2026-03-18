@@ -1,0 +1,38 @@
+# Langfuse Configuration
+
+langfuse:
+  enabled: false  # Set to true when credentials are configured
+  
+  # API Configuration
+  public_key: ${LANGFUSE_PUBLIC_KEY}
+  secret_key: ${LANGFUSE_SECRET_KEY}
+  host: "https://cloud.langfuse.com"
+  
+  # Tracing settings
+  tracing:
+    auto_trace_agent_runs: true
+    auto_trace_llm_calls: true
+    auto_trace_retrievals: true
+    include_metadata: true
+  
+  # Scoring settings
+  scoring:
+    auto_score: true
+    score_metrics:
+      - relevance
+      - coherence
+      - groundedness
+      - factuality
+  
+  # Dataset settings
+  datasets:
+    auto_create: false
+    default_dataset_name: "evaluation_dataset"
+  
+  # Batching settings
+  batch_size: 100
+  flush_interval_seconds: 5
+  
+  # Debug settings
+  debug_mode: false
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR

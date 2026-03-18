@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - PINECONE_ENVIRONMENT=${PINECONE_ENVIRONMENT}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - ENVIRONMENT=development
+    env_file:
+      - ../../.env
+    volumes:
+      - ../../:/app
+    networks:
+      - rag-network
+    depends_on:
+      - retrieval
+      - analysis
+      - synthesis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+  
+  retrieval:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.retrieval
+    ports:
+      - "8001:8001"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+    env_file:
+      - ../../.env
+    networks:
+      - rag-network
+  
+  analysis:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.analysis
+    ports:
+      - "8002:8002"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    env_file:
+      - ../../.env
+    networks:
+      - rag-network
+  
+  synthesis:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.synthesis
+    ports:
+      - "8003:8003"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    env_file:
+      - ../../.env
+    networks:
+      - rag-network
+
+networks:
+  rag-network:
+    driver: bridge

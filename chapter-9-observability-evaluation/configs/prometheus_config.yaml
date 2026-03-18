@@ -1,0 +1,82 @@
+# Prometheus Configuration
+
+prometheus:
+  enabled: true
+  
+  # Server settings
+  server:
+    port: 8000
+    host: "0.0.0.0"
+    auto_start: false  # Set to true to auto-start metrics server
+  
+  # Metric settings
+  metrics:
+    # Agent metrics
+    agent_requests:
+      enabled: true
+      labels:
+        - agent_name
+        - status
+    
+    agent_latency:
+      enabled: true
+      buckets: [0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 60.0]
+    
+    agent_errors:
+      enabled: true
+      labels:
+        - agent_name
+        - error_type
+    
+    # LLM metrics
+    llm_calls:
+      enabled: true
+      labels:
+        - model
+        - status
+    
+    llm_tokens:
+      enabled: true
+      labels:
+        - model
+        - type  # input/output
+    
+    llm_latency:
+      enabled: true
+      buckets: [0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
+    
+    # Retrieval metrics
+    retrieval_requests:
+      enabled: true
+      labels:
+        - status
+    
+    retrieval_documents:
+      enabled: true
+      buckets: [1, 3, 5, 10, 20, 50]
+    
+    retrieval_latency:
+      enabled: true
+      buckets: [0.01, 0.05, 0.1, 0.5, 1.0, 2.0]
+    
+    # Evaluation metrics
+    evaluation_scores:
+      enabled: true
+      labels:
+        - metric_name
+    
+    evaluation_runs:
+      enabled: true
+
+# Scraping configuration (for prometheus.yml)
+scrape_configs:
+  job_name: "ai-agent-metrics"
+  scrape_interval: "15s"
+  static_configs:
+    - targets:
+        - "localhost:8000"
+  
+  metric_relabel_configs:
+    - source_labels: [__name__]
+      regex: "agent_.*"
+      action: keep

@@ -1,0 +1,115 @@
+{
+    "dashboards": [
+      {
+        "name": "AI Agent Evaluation",
+        "uid": "ai-agent-eval",
+        "description": "Comprehensive evaluation metrics for AI agents",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Relevance Score",
+            "type": "gauge",
+            "target": "evaluation_score{metric_name=\"relevance\"}",
+            "gridPos": {"x": 0, "y": 0, "w": 6, "h": 8}
+          },
+          {
+            "id": 2,
+            "title": "Coherence Score",
+            "type": "gauge",
+            "target": "evaluation_score{metric_name=\"coherence\"}",
+            "gridPos": {"x": 6, "y": 0, "w": 6, "h": 8}
+          },
+          {
+            "id": 3,
+            "title": "Groundedness Score",
+            "type": "gauge",
+            "target": "evaluation_score{metric_name=\"groundedness\"}",
+            "gridPos": {"x": 12, "y": 0, "w": 6, "h": 8}
+          },
+          {
+            "id": 4,
+            "title": "Factuality Score",
+            "type": "gauge",
+            "target": "evaluation_score{metric_name=\"factuality\"}",
+            "gridPos": {"x": 18, "y": 0, "w": 6, "h": 8}
+          },
+          {
+            "id": 5,
+            "title": "Metrics Over Time",
+            "type": "graph",
+            "targets": [
+              "evaluation_score{metric_name=\"relevance\"}",
+              "evaluation_score{metric_name=\"coherence\"}",
+              "evaluation_score{metric_name=\"groundedness\"}",
+              "evaluation_score{metric_name=\"factuality\"}"
+            ],
+            "gridPos": {"x": 0, "y": 8, "w": 24, "h": 8}
+          }
+        ]
+      },
+      {
+        "name": "Agent Performance",
+        "uid": "agent-performance",
+        "description": "Performance monitoring for AI agents",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Request Rate",
+            "type": "graph",
+            "target": "rate(agent_requests_total[5m])",
+            "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8}
+          },
+          {
+            "id": 2,
+            "title": "Latency P95",
+            "type": "graph",
+            "target": "histogram_quantile(0.95, rate(agent_request_duration_seconds_bucket[5m]))",
+            "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8}
+          },
+          {
+            "id": 3,
+            "title": "Error Rate",
+            "type": "graph",
+            "target": "rate(agent_errors_total[5m])",
+            "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8}
+          },
+          {
+            "id": 4,
+            "title": "Token Usage",
+            "type": "graph",
+            "targets": [
+              "rate(llm_tokens_total{type=\"input\"}[5m])",
+              "rate(llm_tokens_total{type=\"output\"}[5m])"
+            ],
+            "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8}
+          }
+        ]
+      }
+    ],
+    "variables": [
+      {
+        "name": "agent",
+        "type": "query",
+        "query": "label_values(agent_requests_total, agent_name)",
+        "multi": true,
+        "includeAll": true
+      },
+      {
+        "name": "time_range",
+        "type": "interval",
+        "options": ["5m", "15m", "1h", "6h", "24h", "7d"],
+        "default": "1h"
+      }
+    ],
+    "annotations": [
+      {
+        "name": "Deployments",
+        "datasource": "Prometheus",
+        "expr": "changes(agent_requests_total[1m]) > 0",
+        "tagKeys": "agent_name",
+        "textFormat": "Deployment"
+      }
+    ],
+    "refresh": "30s",
+    "timezone": "browser"
+  }

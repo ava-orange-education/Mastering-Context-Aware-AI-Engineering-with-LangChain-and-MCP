@@ -1,0 +1,3 @@
+"""
+Education AI Tutor API
+"""
